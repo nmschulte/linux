@@ -1230,6 +1230,10 @@ struct drm_connector {
 	uint8_t num_h_tile, num_v_tile;
 	uint8_t tile_h_loc, tile_v_loc;
 	uint16_t tile_h_size, tile_v_size;
+
+	/* TODO(nms): figure out what, if anything to add here for DP/force-SST */
+	/* DisplayPort SST/MST bits ??? */
+	bool dp_force_sst;
 };
 
 /**
@@ -2102,6 +2106,10 @@ struct drm_mode_config {
 	struct drm_property *prop_active;
 	struct drm_property *prop_mode_id;
 
+	/* TODO(nms): is this the right place? */
+	/* DisplayPort properties */
+	struct drm_property *dp_force_sst_property;
+
 	/* DVI-I properties */
 	struct drm_property *dvi_i_subconnector_property;
 	struct drm_property *dvi_i_select_subconnector_property;
@@ -2278,6 +2286,8 @@ extern void drm_encoder_cleanup(struct drm_encoder *encoder);
 extern const char *drm_get_connector_status_name(enum drm_connector_status status);
 extern const char *drm_get_subpixel_order_name(enum subpixel_order order);
 extern const char *drm_get_dpms_name(int val);
+/* TODO(nms): figure out if this get_name fn is needed */
+extern const char *drm_get_dp_force_sst_name(bool val);
 extern const char *drm_get_dvi_i_subconnector_name(int val);
 extern const char *drm_get_dvi_i_select_name(int val);
 extern const char *drm_get_tv_subconnector_name(int val);
@@ -2371,6 +2381,7 @@ void drm_property_unreference_blob(struct drm_property_blob *blob);
 extern void drm_property_destroy(struct drm_device *dev, struct drm_property *property);
 extern int drm_property_add_enum(struct drm_property *property, int index,
 				 uint64_t value, const char *name);
+extern int drm_mode_create_dp_properties(struct drm_device *dev);
 extern int drm_mode_create_dvi_i_properties(struct drm_device *dev);
 extern int drm_mode_create_tv_properties(struct drm_device *dev,
 					 unsigned int num_modes,

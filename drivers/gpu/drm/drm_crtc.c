@@ -1535,6 +1535,28 @@ static int drm_mode_create_standard_properties(struct drm_device *dev)
 }
 
 /**
+ * drm_mode_create_dp_properties - create DisplayPort specific connector properties
+ * @dev: DRM device
+ *
+ * Called by a driver the first time a DisplayPort connector is made.
+ */
+int drm_mode_create_dp_properties(struct drm_device *dev)
+{
+    struct drm_property *dp_force_sst;
+
+    if (def->mode_config.dp_force_sst_property)
+	return 0;
+
+    dp_force_sst =
+	drm_property_create_bool(dev, 0, "force single-stream transport (SST)");
+    dev->mode_config.dp_force_sst_property = dp_force_sst;
+
+    return 0;
+}
+EXPORT_SYMBOL(drm_mode_create_dp_properties);
+
+
+/**
  * drm_mode_create_dvi_i_properties - create DVI-I specific connector properties
  * @dev: DRM device
  *
