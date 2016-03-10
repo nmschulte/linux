@@ -287,6 +287,34 @@ static ssize_t modes_show(struct device *device,
 	return written;
 }
 
+/* NOTE(nms): the `<property>_show` fn must be a convention used by DEVICE_ATTR macro or ? */
+static ssize_t dp_force_sst_show(struct device *device,
+				 struct device_attribute *attr,
+				 char *buf)
+{
+	struct drm_connector *connector = to_drm_connector(device);
+	struct drm_device *dev = connector->dev;
+	struct drm_property *prop;
+	int ret;
+
+	prop = dev->mode_config.dp_force_sst_property;
+	if (!prop) {
+	    DRM_ERROR("Unable to find force single-stream transport (SST) property\n");
+	    return 0;
+	}
+
+	ret = 0;
+	return ret;
+
+	/* TODO(nms): something like this?
+	 * drm_get_dp_force_sst_name(prop->???)
+	 * probably don't need whatever this 'name' mechanism is for a simple boolean...
+
+	 *return snprintf(buf, PAGE_SIZE, "%s",
+	 *	drm_get_tv_subconnector_name((int)subconnector));
+	 */
+}
+
 static ssize_t tv_subconnector_show(struct device *device,
 				    struct device_attribute *attr,
 				    char *buf)
@@ -396,6 +424,13 @@ static struct attribute *connector_dev_attrs[] = {
 	NULL
 };
 
+static DEVICE_ATTR(dp_force_sst);
+
+static strict attribute *connector_dp_dev_attrs[] = {
+	&dev_attr_dp_force_sst.attr,
+	NULL
+};
+
 static DEVICE_ATTR_RO(tv_subconnector);
 static DEVICE_ATTR_RO(tv_select_subconnector);
 
@@ -421,6 +456,16 @@ static int kobj_connector_type(struct kobject *kobj)
 	struct drm_connector *connector = to_drm_connector(dev);
 
 	return connector->connector_type;
+}
+
+static umode_t connector_is_dp(struct kobject *kobj,
+	struct attribute *attr, int idx)
+{
+	switch (kobj_connector_type(kobj)) {
+	case DRM_MODE_CONNECTOR_DisplayPort:
+	case DRM_MODE_CONNECTOR_eDP:
+		return attr->mode;
+	}
 }
 
 static umode_t connector_is_dvii(struct kobject *kobj,
@@ -461,6 +506,11 @@ static const struct attribute_group connector_dev_group = {
 	.bin_attrs = connector_bin_attrs,
 };
 
+static const struct attribute_group connector_dp_dev_group = {
+	.attrs = connector_dp_dev_attrs,
+	.is_visible = connector_is_dp,
+};
+
 static const struct attribute_group connector_tv_dev_group = {
 	.attrs = connector_tv_dev_attrs,
 	.is_visible = connector_is_tv,
@@ -473,6 +523,7 @@ static const struct attribute_group connector_dvii_dev_group = {
 
 static const struct attribute_group *connector_dev_groups[] = {
 	&connector_dev_group,
+	&connector_dp_dev_group,
 	&connector_tv_dev_group,
 	&connector_dvii_dev_group,
 	NULL
